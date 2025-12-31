@@ -222,6 +222,67 @@
 			.settings-btn {
 				display: none !important;
 			}
+
+			/* Countdown overlay */
+			#countdown-overlay {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 60;
+				pointer-events: auto; /* block clicks to underlying UI while visible */
+				background: rgba(0,0,0,0.75); /* dim background so only START is visible */
+			}
+
+			#countdown-overlay .overlay-inner {
+				pointer-events: auto; /* allow clicking the start button */
+				text-align: center;
+			}
+
+			.start-btn {
+				appearance: none;
+				-webkit-appearance: none;
+				border: 2px solid rgba(255,160,200,0.6);
+				padding: 18px 48px;
+				border-radius: 999px;
+				background: rgba(0,0,0,0.45);
+				color: #ff9ad9;
+				font-weight: 700;
+				font-size: 2rem;
+				text-shadow: 0 0 14px rgba(255,105,180,0.9);
+				box-shadow: 0 0 40px rgba(255,20,147,0.25), 0 0 18px rgba(255,105,180,0.35);
+				cursor: pointer;
+			}
+
+			#countdown-number {
+				font-size: 8rem;
+				color: #ff9ad9;
+				text-shadow: 0 0 40px rgba(255,20,147,0.9), 0 0 90px rgba(255,105,180,0.6);
+				display: none;
+				transition: transform 0.25s ease, opacity 0.25s ease;
+				opacity: 0;
+			}
+
+			#countdown-number.show {
+				display: block;
+				opacity: 1;
+				transform: scale(1);
+			}
+
+			#hny-text {
+				font-size: 6rem;
+				color: #ff9ad9;
+				text-shadow: 0 0 40px rgba(255,20,147,0.9), 0 0 90px rgba(255,105,180,0.6);
+				display: none;
+				opacity: 0;
+				transition: opacity 0.3s ease;
+			}
+
+			#hny-text.show {
+				display: block;
+				opacity: 1;
+			}
 		</style>
 		<meta name="msapplication-TileColor" content="#000000" />
 		<meta name="msapplication-TileImage" content="./images/favicon.png" />
@@ -264,6 +325,14 @@
 			<div class="stage-container remove">
 				<!-- Layer lời chúc bay trên trời -->
 				<div class="wishes-layer" id="wishes-layer"></div>
+				<!-- Countdown / Start overlay -->
+				<div id="countdown-overlay">
+					<div class="overlay-inner">
+						<button id="start-btn" class="start-btn">START</button>
+						<div id="countdown-number" aria-hidden="true"></div>
+						<div id="hny-text" aria-hidden="true">HAPPY NEW YEAR</div>
+					</div>
+				</div>
 				<div class="canvas-container">
 					<canvas id="trails-canvas"> </canvas>
 					<canvas id="main-canvas"> </canvas>

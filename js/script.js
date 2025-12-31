@@ -472,6 +472,11 @@ const appNodes = {
 	helpModalHeader: ".help-modal__header",
 	helpModalBody: ".help-modal__body",
 	helpModalCloseBtn: ".help-modal__close-btn",
+	// Countdown / start UI selectors
+	countdownOverlay: '#countdown-overlay',
+	startBtn: '#start-btn',
+	countdownNumber: '#countdown-number',
+	hnyText: '#hny-text',
 };
 
 // Convert appNodes selectors to dom nodes
@@ -483,6 +488,89 @@ Object.keys(appNodes).forEach((key) => {
 if (!fullscreenEnabled()) {
 	appNodes.fullscreenFormOption.classList.add("remove");
 }
+
+// --- Countdown / Start logic ---
+function showOverlay() {
+	const ov = appNodes.countdownOverlay;
+	if (!ov) return;
+	ov.style.display = 'flex';
+}
+
+function hideOverlay() {
+	const ov = appNodes.countdownOverlay;
+	if (!ov) return;
+	ov.style.display = 'none';
+}
+
+function startCountdownSequence() {
+	if (typeof wishesStarted !== 'undefined' && wishesStarted) return;
+	if (typeof giftStarted !== 'undefined' && giftStarted) return;
+	giftStarted = true;
+
+	const overlay = appNodes.countdownOverlay;
+	const btn = appNodes.startBtn;
+	const num = appNodes.countdownNumber;
+	const hny = appNodes.hnyText;
+	if (!overlay || !num || !hny) return;
+
+	// prepare
+	if (btn) btn.style.display = 'none';
+	num.style.display = 'block';
+	num.classList.add('show');
+	hny.style.display = 'none';
+
+	// 3..2..1
+	[3,2,1].forEach((n, idx) => {
+		setTimeout(() => {
+			num.textContent = n;
+			// pop animation
+			num.style.transform = 'scale(0.85)';
+			requestAnimationFrame(() => { num.style.transform = 'scale(1)'; });
+		}, idx * 1000);
+	});
+
+	// show HAPPY NEW YEAR after countdown
+	setTimeout(() => {
+		num.style.display = 'none';
+		num.classList.remove('show');
+		hny.style.display = 'block';
+		hny.classList.add('show');
+	}, 3 * 1000);
+
+	// hide overlay and start fireworks + wishes
+	setTimeout(() => {
+		hideOverlay();
+		try { togglePause(false); } catch (e) {}
+		try { 
+			// allow wishes to start
+			wishesStopped = false;
+			startWishesLoop(); 
+		} catch (e) {}
+	}, 4500);
+}
+
+// attach start button listener (if present)
+	if (appNodes.startBtn) {
+		try {
+			appNodes.startBtn.addEventListener('click', () => {
+				console.log('[START] button clicked');
+				// user gesture — resume audio so sounds are allowed
+				try {
+					if (window.soundManager && typeof window.soundManager.resumeAll === 'function') {
+						window.soundManager.resumeAll();
+					} else if (typeof soundManager !== 'undefined' && soundManager && typeof soundManager.resumeAll === 'function') {
+						soundManager.resumeAll();
+					}
+				} catch (e) {}
+
+				showOverlay();
+				startCountdownSequence();
+			});
+		} catch (e) {}
+	}
+	else {
+		console.log('startBtn not found in DOM');
+	}
 
 //第一次渲染是在状态机 init()中调用的
 function renderApp(state) {
@@ -813,7 +901,7 @@ function spawnWishImage() {
 
 let wishesStarted = false;
 let wishesIntervalId = null;
-let wishesStopped = false; // Trạng thái dừng tạo câu chúc mới
+let wishesStopped = true; // Trạng thái dừng tạo câu chúc mới (mặc định dừng, sẽ bắt sau countdown)
 
 // Biến global để lưu transform của toàn bộ không gian (3D camera) - giống OrbitControls
 let globalWishRotationX = 0; // Xoay theo trục X (lên xuống)
